@@ -1,5 +1,4 @@
 #include "diff.h"
-
 //count unicode words separated by space
 int wordcount(char *s) {
     int curchar;
@@ -88,7 +87,6 @@ void wordsplitarray(char *s, struct string2word_s *s2w) {
             winfo[wc].w[j++] = u8_nextchar(s, &startpos);
         }
         winfo[wc].w[j] = '\0';
-        printf("%ls\n", winfo[wc].w);
     }
 }
 //parses unicode string into char
@@ -96,15 +94,24 @@ void charsplitarray(char *s, struct string2word_s *s2w) {
     int i = 0;
     int wc = 0;
     int curchar;
-    s2w->numwords = u8_strlen(s); 
+    while ((curchar = u8_nextchar(s, &i)) != 0) {
+        if (isspace(curchar) == 0) {
+            wc ++;
+        }
+    }
+    s2w->numwords = wc;
+    wc = 0;
+    i = 0;
     struct wordinfo_s *winfo = (struct wordinfo_s *)calloc(s2w->numwords, sizeof(struct wordinfo_s));
     s2w->winfo = winfo;
     while ((curchar = u8_nextchar(s, &i)) != 0) {
-        winfo[wc].w = (int *)calloc(2, sizeof(int));
-        winfo[wc].w[0] = curchar;
-        winfo[wc].w[1] = '\0';
-        winfo[wc].wlen = 1;
-        wc ++;
+        if (isspace(curchar) == 0) {
+            winfo[wc].w = (int *)calloc(2, sizeof(int));
+            winfo[wc].w[0] = curchar;
+            winfo[wc].w[1] = '\0';
+            winfo[wc].wlen = 1;
+            wc ++;
+        }
     }    
 }
 //parses unicode string into units 
@@ -283,7 +290,9 @@ void leven(struct string2word_s *s2w1, struct string2word_s *s2w2)
         }
         tedit = tedit->next;    
     }    
-          
+    for (i = 0; i<la; i++) {
+        printf("%d %ls ",i, s2w1->winfo[i].w);
+    }
     for (i = 0; i < 1+la; i++) {
         free(tbl[i]);
     }
@@ -302,13 +311,13 @@ int alignment(char *s1, char *s2, struct string2word_s *s2w1, struct string2word
 
 void printwords(struct string2word_s *s2w1, struct string2word_s *s2w2) {
     int i;
-    printf("Transcript1: ");
+    //printf("Transcript1: ");
     for (i = 0; i < s2w1->numwords; i++) {
         printf("(%ls,", s2w1->winfo[i].w);
         printf("%d) ", s2w1->winfo[i].diff);
     }
     printf("\n");
-    printf("Transcript2: ");
+    //printf("Transcript2: ");
     for (i = 0; i < s2w2->numwords; i++) {
         printf("(%ls,", s2w2->winfo[i].w);
         printf("%d) ", s2w2->winfo[i].diff);
